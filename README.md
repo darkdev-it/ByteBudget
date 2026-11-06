@@ -24,7 +24,7 @@
 
 ### Prerequisiti
 Assicurati di avere installato sul tuo computer:
-1. **Java JDK** (versione 17 o superiore)
+1. **Java JDK** (versione 21 o superiore)
 2. **MySQL Server** attivo in locale (`localhost:3306`)
 3. Il driver JDBC MySQL (`mysql-connector-j`) aggiunto alle librerie del progetto.
 4. Assicurati prima di avviare che tutte le informazioni su DatabaseSpese.java siano corrette per il collegamento al Database
