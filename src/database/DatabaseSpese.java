@@ -1,12 +1,45 @@
 package database;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.sql.*;
+import java.util.Properties;
 
 public class DatabaseSpese {
-    String serverUrl = "jdbc:mysql://localhost:3306/";
-    String dbName = "expense_tracker";
-    String username = "root";
-    String password = "1234";
+    private static String serverUrl = "jdbc:mysql://localhost:3306/";
+    private static String dbName = "expense_tracker";
+    private static String username = "root";
+    private static String password = "1234";
+
+    // Blocco statico per caricare la configurazione esterna all'avvio
+    static {
+        loadConfig();
+    }
+
+    private static void loadConfig() {
+        try {
+            File jarPath = new File(DatabaseSpese.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            File parent = jarPath.isDirectory() ? jarPath : jarPath.getParentFile();
+            File configFile = new File(parent, "config.properties");
+
+            if (configFile.exists()) {
+                try (InputStream input = new FileInputStream(configFile)) {
+                    Properties prop = new Properties();
+                    prop.load(input);
+                    serverUrl = prop.getProperty("db.server", serverUrl);
+                    dbName = prop.getProperty("db.name", dbName);
+                    username = prop.getProperty("db.user", username);
+                    password = prop.getProperty("db.password", password);
+                    System.out.println("✅ Configurazione database caricata da file esterno.");
+                }
+            } else {
+                System.out.println("⚠️ File config.properties non trovato, uso i valori di default.");
+            }
+        } catch (Exception e) {
+            System.out.println("⚠️ Errore nel caricamento del file di configurazione: " + e.getMessage());
+        }
+    }
 
     public DatabaseSpese() {
         try {

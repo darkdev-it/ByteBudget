@@ -17,7 +17,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WebServerSpese {
-    private static final String WEB_DIR = "src/web";
+
+    private static final String WEB_DIR = trovaWebDir();
+
+    private static String trovaWebDir() {
+        try {
+            File jarPath = new File(WebServerSpese.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            File parent = jarPath.isDirectory() ? jarPath : jarPath.getParentFile();
+            File webFolder = new File(parent, "web");
+            if (webFolder.exists()) {
+                return webFolder.getAbsolutePath();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "web"; // Fallback di sicurezza
+    }
 
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
@@ -30,6 +45,7 @@ public class WebServerSpese {
         server.start();
 
         System.out.println("=== WEB SERVER AVVIATO ===");
+        System.out.println("Cartella Web caricata da: " + WEB_DIR);
         System.out.println("Apri il browser su: http://localhost:8080");
     }
 
@@ -47,10 +63,10 @@ public class WebServerSpese {
             File file = new File(WEB_DIR, requestPath);
 
             if (!file.exists() || file.isDirectory()) {
-                String notFound = "404 - File non trovato";
+                String notFound = "404 - File non trovato (Cercato in: " + file.getAbsolutePath() + ")";
                 exchange.sendResponseHeaders(404, notFound.length());
                 OutputStream os = exchange.getResponseBody();
-                os.write(notFound.getBytes());
+                os.write(notFound.getBytes(StandardCharsets.UTF_8));
                 os.close();
                 return;
             }
@@ -96,7 +112,6 @@ public class WebServerSpese {
         }
     }
 
-    // Endpoint per recuperare le spese in formato JSON per l'interfaccia web
     static class ListaDatiHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -128,7 +143,6 @@ public class WebServerSpese {
 
                     totale += imp;
 
-                    //Locale.US per forzare il punto decimale (es. 89.99 anziché 89,99)
                     json.append(String.format(Locale.US, "{\"desc\":\"%s\",\"imp\":%.2f,\"cat\":\"%s\"}", desc, imp, cat));
                     prima = false;
                 }
@@ -140,7 +154,6 @@ public class WebServerSpese {
                 e.printStackTrace();
             }
 
-            //Locale.US anche per il totale complessivo
             json.append(String.format(Locale.US, "],\"totale\":%.2f}", totale));
 
             byte[] response = json.toString().getBytes(StandardCharsets.UTF_8);
